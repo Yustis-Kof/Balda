@@ -1,0 +1,9 @@
+swagger: "2.0"
+info:
+  title: Balda API
+  description: API для игры "Балда"
+  version: "1.0"
+host: localhost:5000
+basePath: /
+schemes:
+  - http

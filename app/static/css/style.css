@@ -1,7 +1,12 @@
+.container-board{
+    user-select: none;
+}
+
 #board {
     border-collapse: collapse;
     margin: auto;
     margin-top: 240px;
+    user-select: none;
 }
 
 #board td {

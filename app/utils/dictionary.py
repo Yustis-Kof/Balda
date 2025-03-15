@@ -1,6 +1,8 @@
 from app.database import get_db_connection
 
 def check_word(word):
+    """Ищет слово в БД"""
+    
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:

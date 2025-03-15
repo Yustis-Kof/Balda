@@ -11,7 +11,9 @@ const grid = [
 let isSelecting = false; // Флаг для отслеживания процесса выбора
 let selectedCells = []; // Массив для хранения выбранных клеток
 
-// Функция для отрисовки игрового поля
+/**
+ * Отрисовывает игровое поле в теге #board
+ */
 function renderBoard() {
     board.innerHTML = '';
     grid.forEach((row, i) => {
@@ -35,7 +37,11 @@ function renderBoard() {
     });
 }
 
-// Функция для начала выбора
+/**
+ * Начало выбора
+ * @param {number} i 
+ * @param {number} j 
+ */
 function startSelection(i, j) {
     if (grid[i][j] === '') return; // Не начинаем выбор с пустой клетки
     isSelecting = true;
@@ -43,6 +49,11 @@ function startSelection(i, j) {
     updateSelection();
 }
 
+/**
+ * Продолжение выбора
+ * @param {number} i 
+ * @param {number} j 
+ */
 function addToSelection(i, j) {
     if (!isSelecting || grid[i][j] === '') return; // Не добавляем пустые клетки
 
@@ -73,7 +84,9 @@ function addToSelection(i, j) {
     }
 }
 
-// Функция для завершения выбора
+/**
+ * Завершение выбора. Отправляет слово на проверку
+ */
 function endSelection() {
     if (!isSelecting) return;
     isSelecting = false;
@@ -91,7 +104,9 @@ function endSelection() {
     updateSelection();
 }
 
-// Функция для обновления визуального выделения
+/**
+ * Обновление выбора для рендера
+ */
 function updateSelection() {
     const cells = document.querySelectorAll('td');
     cells.forEach(cell => cell.classList.remove('selected'));
@@ -106,6 +121,12 @@ function updateSelection() {
 
 let activeInput = null; // Глобальная переменная для отслеживания активного поля ввода
 
+/**
+ * Создаёт в указанной клетке текстовое поле длиной
+ * в 1 символ, которое удаляется при потере фокуса
+ * @param {number} i 
+ * @param {number} j 
+ */
 function addLetter(i, j) {
     if (grid[i][j] !== '') {
         return; // Если клетка уже занята, ничего не делаем
@@ -179,7 +200,10 @@ function addLetter(i, j) {
     activeInput = input; // Устанавливаем активное поле ввода
 }
 
-// Функция для отправки хода на сервер
+/**
+ * Отправляет слово на сервер для проверки
+ * @param {string} word 
+ */
 function sendMoveToServer(word) {
     fetch('http://127.0.0.1:5000/move', {
         method: 'POST',
