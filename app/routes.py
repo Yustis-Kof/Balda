@@ -8,7 +8,7 @@ main_routes = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-@main_routes.route('/move', methods=['POST'])
+@main_routes.route('/check', methods=['POST'])
 def make_move():
     """
     Проверяет наличие слова в словаре
@@ -29,32 +29,23 @@ def make_move():
               example: "балда"
     responses:
       200:
-        description: Результат проверки
+        description: Результат проверки слова
         schema:
           type: object
           properties:
             status:
               type: string
-              example: "success"
+              enum: [success, error]
             message:
               type: string
-              example: "Слово принято"
-      400:
-        description: Ошибка
-        schema:
-          type: object
-          properties:
-            status:
-              type: string
-              example: "error"
-            message:
-              type: string
-              example: "Слова нет в словаре"
     """
     data = request.json
     word = data.get('word').lower()
 
+    if not word:
+        return jsonify({'status': 'error', 'message': 'Слово не передано'}), 400
+    
     if check_word(word):
-        return jsonify({'status': 'success', 'message': 'Слово принято'})
+        return jsonify({'status': 'success', 'message': 'Слово принято'}), 200
     else:
-        return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 400
+        return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 200

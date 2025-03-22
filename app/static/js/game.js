@@ -1,4 +1,5 @@
 const board = document.getElementById('board');
+const wordline = document.getElementById('word')
 // Пример игрового поля
 const grid = [
     ['', '', '', '', ''],
@@ -117,6 +118,9 @@ function updateSelection() {
             cellElement.classList.add('selected');
         }
     });
+
+    const word = selectedCells.map(cell => grid[cell.row][cell.col]).join('')
+    wordline.innerHTML = word;
 }
 
 let activeInput = null; // Глобальная переменная для отслеживания активного поля ввода
@@ -205,7 +209,7 @@ function addLetter(i, j) {
  * @param {string} word 
  */
 function sendMoveToServer(word) {
-    fetch('http://127.0.0.1:5000/move', {
+    fetch('http://127.0.0.1:5000/check', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

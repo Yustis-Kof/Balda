@@ -1,10 +1,15 @@
 .container-board{
     user-select: none;
+    display: block;
+}
+
+.container-board *{
+    margin: auto;
+    text-align: center;
 }
 
 #board {
     border-collapse: collapse;
-    margin: auto;
     margin-top: 240px;
     user-select: none;
 }
@@ -38,4 +43,9 @@
     background-color: transparent;
     font-family: 'Times New Roman', Times, serif;
     padding: 0px;
+}
+
+#word {
+    font-size: 26px;
+    margin-top: 20px;
 }
