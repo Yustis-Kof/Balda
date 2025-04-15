@@ -9,8 +9,23 @@ const grid = [
     ['', '', '', '', '']
 ];
 
+
+// Глобальные переменные
 let isSelecting = false; // Флаг для отслеживания процесса выбора
 let selectedCells = []; // Массив для хранения выбранных клеток
+
+let currentMoveLetter = null; // Координаты текущей буквы {row, col}
+let isMoveInProgress = false; // Идёт ли ход
+let timeForMove = 60;
+let timerValue = timeForMove; // Время хода
+let timerInterval = null; // Интервал таймера
+
+const players = [
+    { name: "Игрок 1", words: [], score: 0 },
+    { name: "Игрок 2", words: [], score: 0 }
+];
+let currentPlayerIndex = 0; // Индекс текущего игрока
+
 
 /**
  * Отрисовывает игровое поле в теге #board
@@ -63,7 +78,7 @@ function addToSelection(i, j) {
     const colDiff = Math.abs(j - lastCell.col);
 
     // Проверяем, что клетка смежная (по горизонтали, вертикали или диагонали)
-    if ((rowDiff <= 1 && colDiff <= 1) && !(rowDiff === 0 && colDiff === 0)) {
+    if ((rowDiff + colDiff == 1) && !(rowDiff === 0 && colDiff === 0)) {
         // Проверяем, что клетка — это предпоследняя выбранная клетка
         if (selectedCells.length > 1) {
             const prevCell = selectedCells[selectedCells.length - 2];
@@ -92,17 +107,12 @@ function endSelection() {
     if (!isSelecting) return;
     isSelecting = false;
 
-    // Получаем слово из выбранных клеток
-    const word = selectedCells.map(cell => grid[cell.row][cell.col]).join('');
-    if(word.length > 1){
-        console.log('Выбранное слово:', word);
-
-        // Отправляем слово на сервер
-        sendMoveToServer(word);
+    if (selectedCells.length > 1) {
+        document.getElementById('controls').style.display = 'block';
+    } else {
+        selectedCells = [];
+        updateSelection();
     }
-    // Сбрасываем выделение
-    selectedCells = [];
-    updateSelection();
 }
 
 /**
@@ -132,9 +142,26 @@ let activeInput = null; // Глобальная переменная для от
  * @param {number} j 
  */
 function addLetter(i, j) {
-    if (grid[i][j] !== '') {
-        return; // Если клетка уже занята, ничего не делаем
+    if (grid[i][j] !== '' || isMoveInProgress) return;
+
+    // Проверка граничащих клеток
+    if (!isAdjacentToFilled(i, j)) {
+        alert("Можно вводить только в соседние клетки!");
+        return;
     }
+
+    // Если уже есть активная буква, очистить её
+    if (currentMoveLetter) {
+        const prevRow = currentMoveLetter.row;
+        const prevCol = currentMoveLetter.col;
+        grid[prevRow][prevCol] = '';
+        renderBoard();
+    }
+
+    // Добавление новой буквы
+    currentMoveLetter = { row: i, col: j };
+    document.getElementById('reset-button').style.display = 'block';
+    isMoveInProgress = true;
 
     // Если есть активное поле ввода, завершаем его работу
     if (activeInput) {
@@ -202,7 +229,60 @@ function addLetter(i, j) {
     cellElement.appendChild(input);
     input.focus(); // Устанавливаем фокус на поле ввода
     activeInput = input; // Устанавливаем активное поле ввода
+
+    document.getElementById('reset-button').style.display = 'block';
+    document.getElementById('controls').style.display = 'none'; // Скрываем кнопки выбора
 }
+
+/**
+ * Проверяет, является ли клетка
+ * граничущей с хотя бы одной заполненной
+ */
+function isAdjacentToFilled(row, col) {
+    const directions = [
+                  [-1,  0], 
+        [ 0, -1],           [ 0,  1],
+                  [ 1,  0], 
+    ];
+    return directions.some(([dr, dc]) => {
+        const r = row + dr;
+        const c = col + dc;
+        return r >= 0 && r < 5 && c >= 0 && c < 5 && grid[r][c] !== '';
+    });
+}
+
+/**
+ * Сбросить букву
+ */
+function resetLetter() {
+    if (currentMoveLetter) {
+        grid[currentMoveLetter.row][currentMoveLetter.col] = '';
+        
+        currentMoveLetter = null;
+        document.getElementById('reset-button').style.display = 'none';
+        renderBoard();
+        updateSelection();
+    }
+}
+
+/**
+ * Отменить выделение
+ */
+function cancelSelection() {
+    selectedCells = [];
+    updateSelection();
+    document.getElementById('controls').style.display = 'none';
+}
+
+/**
+ * Подтвердить слово
+ */
+function submitWord() {
+    const word = selectedCells.map(cell => grid[cell.row][cell.col]).join('');
+    sendMoveToServer(word);
+    document.getElementById('controls').style.display = 'none';
+}
+
 
 /**
  * Отправляет слово на сервер для проверки
@@ -211,15 +291,66 @@ function addLetter(i, j) {
 function sendMoveToServer(word) {
     fetch('http://127.0.0.1:5000/check', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word: word })
     })
     .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Ошибка:', error));
+    .then(data => {
+        if (data.status === 'success') {
+            players[currentPlayerIndex].words.push(word);
+            players[currentPlayerIndex].score += word.length;
+            passTurn();
+        } else {
+            alert(data.message);
+        }
+    });
+    cancelSelection();
 }
 
+
+function startTimer() {
+    timerValue = timeForMove;
+    document.getElementById('timer').textContent = `Время: ${timerValue}`;
+    timerInterval = setInterval(() => {
+        timerValue--;
+        document.getElementById('timer').textContent = `Время: ${timerValue}`;
+        if (timerValue <= 0) {
+            clearInterval(timerInterval);
+            alert("Время вышло!");
+            passTurn();
+        }
+    }, 1000);
+}
+
+
+function passTurn() {
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    isMoveInProgress = false;
+    currentMoveLetter = null;
+    document.getElementById('reset-button').style.display = 'none';
+    timerValue = timeForMove;
+    updateScoreboard();
+}
+
+
+function updateScoreboard() {
+    players.forEach((player, index) => {
+        const column = document.getElementById(`player${index+1}-column`);
+        if (column) {
+            column.querySelector('.word-list').innerHTML = player.words.join('<br>') || '—';
+            column.querySelector('.score').textContent = player.score;
+        }
+    });
+    
+    document.querySelector('.total-score').textContent = `Всего: ${
+        players.reduce((sum, player) => sum + player.score, 0)
+    }`;
+}
+
+
 // Инициализация игрового поля
-renderBoard();
+document.addEventListener('DOMContentLoaded', () => {
+    renderBoard();
+    startTimer();
+    updateScoreboard();
+});
