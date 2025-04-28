@@ -32,6 +32,7 @@ def login():
         user = authenticate_user(username, password)
         if user:
             session['user_id'] = user['id']
+            session['username'] = user['username']
             return redirect(url_for('main.index'))
         
         return render_template('login.html', error="Неверные данные")
@@ -42,7 +43,7 @@ def login():
 @main_routes.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('main.login'))
+    return jsonify({'status': 'success', 'message': 'Разлогинен'}), 200
 
 
 @main_routes.route('/check_session')
