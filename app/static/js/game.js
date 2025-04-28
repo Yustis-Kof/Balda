@@ -27,6 +27,36 @@ const players = [
 let currentPlayerIndex = 0; // Индекс текущего игрока
 
 
+// Проверка сессии при загрузке
+async function checkAuth() {
+    const response = await fetch('/check_session');
+    const data = await response.json();
+    
+    if (!data.authenticated) {
+        window.location.href = '/login';
+    } else {
+        document.getElementById('username').textContent = data.username;
+    }
+}
+
+// Отправка логина
+async function login(username, password) {
+    const response = await fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, password})
+    });
+    return await response.json();
+}
+
+// Выход
+async function logout() {
+    await fetch('/logout');
+    window.location.href = '/login';
+}
+
+
+
 /**
  * Отрисовывает игровое поле в теге #board
  */
@@ -350,7 +380,11 @@ function updateScoreboard() {
 
 // Инициализация игрового поля
 document.addEventListener('DOMContentLoaded', () => {
-    renderBoard();
-    startTimer();
-    updateScoreboard();
+    // Проверка авторизации перед началом игры
+    checkAuthStatus().then(() => {
+        // Инициализация игры только после успешной авторизации
+        renderBoard();
+        startTimer();
+        updateScoreboard();
+    });
 });

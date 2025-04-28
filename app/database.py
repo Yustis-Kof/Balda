@@ -9,3 +9,13 @@ def get_db_connection():
         database=Config.DB_NAME,
         cursorclass=pymysql.cursors.DictCursor
     )
+
+def authenticate_user(username, password):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT id, username FROM users WHERE username = %s AND password = %s"
+            cursor.execute(sql, (username, password))
+            return cursor.fetchone()
+    finally:
+        connection.close()
