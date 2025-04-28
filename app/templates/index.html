@@ -7,8 +7,12 @@
 </head>
 <body>
     <div class="user-panel">
-        <span id="username">Гость</span>
-        <button onclick="logout()">Выйти</button>
+        {% if session.get('username') %}
+            <span id="current-user">{{ session['username'] }}</span>
+            <button onclick="logout()">Выйти</button>
+        {% else %}
+            <a href="/login">Войти</a>
+        {% endif %}
     </div>
     
     <div class="game-container">
