@@ -34,8 +34,6 @@ async function checkAuth() {
     
     if (!data.authenticated) {
         window.location.href = '/login';
-    } else {
-        document.getElementById('username').textContent = data.username;
     }
 }
 
@@ -381,7 +379,7 @@ function updateScoreboard() {
 // Инициализация игрового поля
 document.addEventListener('DOMContentLoaded', () => {
     // Проверка авторизации перед началом игры
-    checkAuthStatus().then(() => {
+    checkAuth().then(() => {
         // Инициализация игры только после успешной авторизации
         renderBoard();
         startTimer();
