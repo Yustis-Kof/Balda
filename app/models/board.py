@@ -33,6 +33,6 @@ class Board:
         if x < 0 or x > self.width or y < 0 or y > self.height:
             raise InvalidCoordinates(f"({x},{y}) are not valid coordinates for {self.width}x{self.height} board")
         if self.board[x][y] != "":
-            raise LetterOverride("Can't write in cell where is alredy a letter")
+            raise LetterOverride("Can't write in a cell that alredy contains a letter")
         else:
             self.board[x][y] = letter
