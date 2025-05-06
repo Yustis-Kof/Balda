@@ -1,5 +1,5 @@
-from exceptions import *
-from database import get_random_word
+from .exceptions import *
+from ..database import get_random_word
 
 alphabet_ru = "абвгдежзийклмнопрстуфхцчшщъыьэюя" # ё временно отсутствует
 
@@ -26,6 +26,17 @@ class Board:
         coords = [(i, centery, centerword[i]) for i in range(width)]
         self.write_word(coords)
 
+    def print_board(self):
+        """Напечатать игровое поле (для отладки)
+
+        Уфф, в который раз мне приходится это делать...
+        """
+        print("+-"*self.width, end="+\n")
+        for i in range(self.height):
+            for j in range(self.width):
+                print("|", end="")
+                print(self.board[i][j] if self.board[i][j] else " ", end="|")
+            print("+-"*self.width, end="+\n")
 
     def write(self, letter:chr, x:int, y:int):
         """Вписать букву в клетку

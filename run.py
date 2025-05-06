@@ -1,6 +1,9 @@
 from app import create_app
+from app.models.board import Board
 
 app = create_app()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    board = Board()
+    board.print_board()
+    #app.run(debug=True)
