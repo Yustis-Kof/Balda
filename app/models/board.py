@@ -1,4 +1,5 @@
 from exceptions import *
+from database import get_random_word
 
 alphabet_ru = "абвгдежзийклмнопрстуфхцчшщъыьэюя" # ё временно отсутствует
 
@@ -19,7 +20,13 @@ class Board:
         self.alphabet = alphabet
         self.dictionary = dictionary
         self.board = [["" for j in range(width)] for i in range(height)]
-    
+        
+        centery = height//2+1
+        centerword = get_random_word(self.dictionary, self.width)
+        coords = [(i, centery, centerword[i]) for i in range(width)]
+        self.write_word(coords)
+
+
     def write(self, letter:chr, x:int, y:int):
         """Вписать букву в клетку
 
@@ -36,3 +43,15 @@ class Board:
             raise LetterOverride("Can't write in a cell that alredy contains a letter")
         else:
             self.board[x][y] = letter
+
+    def write_word(self, coords:list):
+        """Вписать слово в указанные клетки
+
+        Args:
+            coords (list): Список кортежей в формате (X, Y, Буква)
+        """
+        for coord in coords:
+            if len(coord) != 3:
+                raise InvalidCoordinates(f"{coord} is not a valid coordinate & letter tuple")
+            x, y, letter = coord[0], coord[1], coord[2]
+            self.write(letter, x, y)

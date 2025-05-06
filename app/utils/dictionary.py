@@ -35,6 +35,8 @@ class Trie:
             node = node.children[char]
         return node.is_end_of_word
 
+
+
 word_trie = Trie()
 
 def load_dictionary():
