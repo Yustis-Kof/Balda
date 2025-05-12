@@ -19,10 +19,12 @@ class Board:
         """
         self.alphabet = alphabet
         self.dictionary = dictionary
+        self.width = width
+        self.height = height
         self.board = [["" for j in range(width)] for i in range(height)]
         
-        centery = height//2+1
-        centerword = get_random_word(self.dictionary, self.width)
+        centery = height//2
+        centerword = start_word or get_random_word(self.dictionary, self.width)
         coords = [(i, centery, centerword[i]) for i in range(width)]
         self.write_word(coords)
 
@@ -35,7 +37,8 @@ class Board:
         for i in range(self.height):
             for j in range(self.width):
                 print("|", end="")
-                print(self.board[i][j] if self.board[i][j] else " ", end="|")
+                print(self.board[i][j] if self.board[i][j] else " ", end="")
+            print("|")
             print("+-"*self.width, end="+\n")
 
     def write(self, letter:chr, x:int, y:int):
@@ -50,10 +53,10 @@ class Board:
             raise InvalidLetter(f"{letter} is not a valid letter")
         if x < 0 or x > self.width or y < 0 or y > self.height:
             raise InvalidCoordinates(f"({x},{y}) are not valid coordinates for {self.width}x{self.height} board")
-        if self.board[x][y] != "":
+        if self.board[y][x] != "":
             raise LetterOverride("Can't write in a cell that alredy contains a letter")
         else:
-            self.board[x][y] = letter
+            self.board[y][x] = letter
 
     def write_word(self, coords:list):
         """Вписать слово в указанные клетки
@@ -63,6 +66,6 @@ class Board:
         """
         for coord in coords:
             if len(coord) != 3:
-                raise InvalidCoordinates(f"{coord} is not a valid coordinate & letter tuple")
+                raise InvalidCoordinates(f"{coord} is not a valid coordinates & letter tuple")
             x, y, letter = coord[0], coord[1], coord[2]
             self.write(letter, x, y)

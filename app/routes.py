@@ -56,8 +56,51 @@ def check_session():
     return jsonify({'authenticated': False})
 
 
+## Игровые инструменты
+
+@main_routes.route('/get_random_word', methods=['POST'])
+def get_random_word():  # Мне ооочень страшно делать одинаковые имена у методов, но пока конфликтов нет
+    """
+    Выдаёт случайное слово указанной длины
+    ---
+    tags:
+      - Game
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            length:
+              type: integer
+              example: 5
+    responses:
+      200:
+        description: Слово
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [success, error]
+            word:
+              type: string
+    """
+    data = request.json
+    length = data.get('length').lower()
+
+    try:
+        word = get_random_word(length=length)
+        return jsonify({'status': 'success', 'word': word}), 200
+    except:
+        return jsonify({'status': 'error'}), 400
+
 ## Игра
 
+@login_required # В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
 @main_routes.route('/check', methods=['POST'])
 def check_word():
     """
@@ -99,7 +142,9 @@ def check_word():
         return jsonify({'status': 'success', 'message': 'Слово принято'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 200
-    
+
+
+
 @main_routes.route('/createlobby')
 def create_lobby():
     
