@@ -5,6 +5,6 @@ from app.models.board import Board
 app = create_app()
 
 if __name__ == '__main__':
-    game = Game(board=None, players=[])
+    game = Game(board=None, players=['биба', 'боба'])
     game.board.print_board()
     #app.run(debug=True)

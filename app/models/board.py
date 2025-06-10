@@ -97,3 +97,47 @@ class Board:
             else:
                 word += self.board[y][x]
         return word
+    
+    def find_word(self, word:str, obligatory_coords:tuple=None):
+        """Получить координаты по слову, если оно есть на поле
+
+        Args:
+            word (str): Искомое слово
+            obligatory_coords (tuple, optional): Координаты буквы в формате (X, Y), которая должна содержаться в слове
+        """
+        global results
+        results = []
+
+        def find_word(coords):
+            """Рекурсивная функция для поиска слова
+
+            Args:
+                coords (_type_): Список найденных координат первый n+1 букв слова
+            """
+
+            global results
+
+            n = len(coords)
+            if n == len(word):
+                if obligatory_coords and obligatory_coords in coords:
+                    results += [coords]
+            else:
+                x, y = coords[n-1]
+                for i, j in [
+                    (-1, -1), (0, -1), (+1, -1),
+                    (-1,  0),          (+1,  0),
+                    (-1, +1), (0, +1), (+1, +1)
+                ]:
+                    if 0 <= x+i < self.width and 0 <= y+j < self.height and self.board[y+j][x+i] not in coords and self.board[y+j][x+i] == word[n]:
+                        find_word(coords + [(x+i, y+j)])
+
+
+        for x in range(self.width):
+            for y in range(self.height):
+                if self.board[y][x] == word[0]:
+                    find_word([(x, y)])
+        
+        if results:
+            return results
+        else:
+            raise NoSuchWord(f"Can't find the word {word} on the board")

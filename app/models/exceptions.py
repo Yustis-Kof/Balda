@@ -15,3 +15,9 @@ class EmptyCell(Exception):
 
 class NoSuchWord(Exception):
     pass
+
+class WordDoesNotContainNewLetter(Exception):
+    pass
+
+class NoWordGiven(Exception):
+    pass
