@@ -24,6 +24,7 @@ class Game:
         self.count = [0] * len(players)
         self.current_player = 0
         self.history = []
+        self.winners = None
 
     def move(self, letter_coords:tuple, word_coords:list=None, word:str=None):
         """Совершить ход
@@ -50,13 +51,26 @@ class Game:
             self.history.append(deepcopy(self.board))
             
             self.count[self.current_player] += len(word)
-            self.current_player = self.current_player + 1 % len(self.players)
-            
+            self.current_player = (self.current_player + 1) % len(self.players)
+        
             self.board = next_board
-            
+
+            self.check_end()
         else:
             raise NoSuchWord(f"Can't find word {word} in dictionary")
 
     def skip_move(self):
         self.history.append(deepcopy(self.board))
-        self.current_player = self.current_player + 1 % len(self.players)
+        self.current_player = (self.current_player + 1) % len(self.players)
+
+        self.check_end()
+            
+
+
+    
+    def check_end(self):
+        """Проверить, завершена ли партия
+        """
+        if not self.board.check_space():
+            max_count = max(self.count)
+            self.winners = [i for i in self.count if self.count[i]==max_count]

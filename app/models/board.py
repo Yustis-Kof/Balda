@@ -59,9 +59,9 @@ class Board:
         else:
             isolated = True
             for i, j in [
-                (-1, -1), (0, -1), (+1, -1),
+                          (0, -1),
                 (-1,  0),          (+1,  0),
-                (-1, +1), (0, +1), (+1, +1)
+                          (0, +1)
             ]:
                 if 0 <= x+i < self.width and 0 <= y+j < self.height and self.board[y+j][x+i] != "":
                     isolated = False
@@ -106,7 +106,9 @@ class Board:
             obligatory_coords (tuple, optional): Координаты буквы в формате (X, Y), которая должна содержаться в слове
         """
         global results
+        global found
         results = []
+        found = False
 
         def find_word(coords):
             """Рекурсивная функция для поиска слова
@@ -119,16 +121,17 @@ class Board:
 
             n = len(coords)
             if n == len(word):
+                found = True
                 if obligatory_coords and obligatory_coords in coords:
                     results += [coords]
             else:
                 x, y = coords[n-1]
                 for i, j in [
-                    (-1, -1), (0, -1), (+1, -1),
+                              (0, -1), 
                     (-1,  0),          (+1,  0),
-                    (-1, +1), (0, +1), (+1, +1)
+                              (0, +1)
                 ]:
-                    if 0 <= x+i < self.width and 0 <= y+j < self.height and self.board[y+j][x+i] not in coords and self.board[y+j][x+i] == word[n]:
+                    if 0 <= x+i < self.width and 0 <= y+j < self.height and (x+i, y+j) not in coords and self.board[y+j][x+i] == word[n]:
                         find_word(coords + [(x+i, y+j)])
 
 
@@ -138,6 +141,18 @@ class Board:
                     find_word([(x, y)])
         
         if results:
+            print(results)
             return results
+        elif found:
+            raise WordDoesNotContainNewLetter("Word doesn't contain new letter")
         else:
             raise NoSuchWord(f"Can't find the word {word} on the board")
+
+    def check_space(self):
+        """Проверить, остались ли незаполненные клетки
+        """
+        for column in self.board:
+            for cell in column:
+                if cell == "":
+                    return True
+        return False
