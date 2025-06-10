@@ -29,3 +29,13 @@ def get_random_word(dictionary="`dictionary`", length=5):
             return cursor.fetchone()['word']
     finally:
         connection.close()
+
+def get_user(id):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM `users` WHERE id=%s"
+            cursor.execute(sql, (id))
+            return cursor.fetchone()['word']
+    finally:
+        connection.close()
