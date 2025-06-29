@@ -12,9 +12,9 @@ def create_app():
     load_dictionary()
 
     # Захостим документацию
-    Swagger(app, template_file='docs/openapi.yml')
+    # Swagger(app, template_file='docs/openapi.yml')
 
-    from app.routes import main_routes
-    app.register_blueprint(main_routes)
+    #from app.routes import main_routes
+    #app.register_blueprint(main_routes)
 
     return app
