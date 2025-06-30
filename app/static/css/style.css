@@ -122,17 +122,23 @@
 }
 
 #board {
+    table-layout: fixed;
+    width: 40vmin; /* 80% от меньшей стороны экрана */
+    height: 40vmin;
+    max-width: 500px;
+    max-height: 500px;
+    margin: 0 auto;
     border-collapse: collapse;
-    margin: auto;
 }
 
 #board td {
-    width: 50px;
-    height: 50px;
+    width: 20%;
+    height: 20%;
+    aspect-ratio: 1/1;
     border: 1px solid black;
     text-align: center;
     vertical-align: middle;
-    font-size: 20px;
+    font-size: 3.5vmin;
     cursor: pointer;
     user-select: none;
 }
@@ -149,7 +155,7 @@
     width: 100%;
     height: 100%;
     text-align: center;
-    font-size: 20px;
+    font-size: 3.5vmin;
     border: none;
     outline: none;
     background-color: transparent;
@@ -193,100 +199,4 @@
 .error {
     color: #dc3545;
     margin-bottom: 15px;
-}
-
-/* Скрываем кнопки по умолчанию */
-#reset-button,
-#selection-controls {
-    display: none;
-}
-
-/* Показываем кнопки только когда они нужны */
-#reset-button.visible,
-#selection-controls.visible {
-    display: block;
-}
-
-/* Для группы кнопок используем flex */
-#selection-controls.visible {
-    display: flex;
-    gap: 15px;
-}
-
-/* Лобби */
-.lobby-container {
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.create-lobby {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-}
-
-.create-lobby input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
-}
-
-.create-lobby button {
-    padding: 10px 20px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.lobby-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.lobby-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: white;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.lobby-info h3 {
-    margin: 0 0 5px 0;
-    color: #333;
-}
-
-.lobby-info span {
-    color: #666;
-    font-size: 14px;
-}
-
-.join-btn {
-    padding: 8px 15px;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.join-btn:hover {
-    background: #0069d9;
-}
-
-.loading, .empty, .error {
-    text-align: center;
-    padding: 20px;
-    color: #666;
 }
