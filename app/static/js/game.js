@@ -59,21 +59,28 @@ function renderBoard() {
         const rowElement = document.createElement('tr');
         row.forEach((cell, j) => {
             const cellElement = document.createElement('td');
-            cellElement.textContent = cell;
+            cellElement.textContent = cell === '' ? '\u00A0' : cell;
+            
             if (cell === '') {
                 cellElement.classList.add('empty');
             }
-            cellElement.addEventListener('click', () => addLetter(i, j));
+            
             cellElement.dataset.row = i;
             cellElement.dataset.col = j;
+            cellElement.addEventListener('click', () => addLetter(i, j));
             cellElement.addEventListener('mousedown', () => startSelection(i, j));
             cellElement.addEventListener('mouseenter', () => addToSelection(i, j));
             cellElement.addEventListener('mouseup', endSelection);
-            document.addEventListener('mouseup', endSelection);
+            
             rowElement.appendChild(cellElement);
         });
         board.appendChild(rowElement);
     });
+    
+    // Гарантированно скрываем кнопки после рендеринга
+    document.getElementById('reset-button').classList.remove('visible');
+    document.getElementById('selection-controls').classList.remove('visible');
+    updateSelection();
 }
 
 function startSelection(i, j) {
@@ -145,14 +152,9 @@ function addLetter(i, j) {
         return;
     }
 
+    // Если уже есть активный ввод, завершаем его
     if (activeInput) {
-        const currentCell = activeInput.parentElement;
-        const currentRow = parseInt(currentCell.dataset.row);
-        const currentCol = parseInt(currentCell.dataset.col);
-        const value = activeInput.value.toUpperCase();
-        grid[currentRow][currentCol] = value || '';
-        currentCell.innerHTML = grid[currentRow][currentCol];
-        activeInput = null;
+        finishActiveInput();
     }
 
     currentMoveLetter = { row: i, col: j };
@@ -164,6 +166,7 @@ function addLetter(i, j) {
     input.type = 'text';
     input.maxLength = 1;
 
+    // Обработка ввода русских букв
     input.addEventListener('input', (e) => {
         const value = e.target.value.toUpperCase();
         const russianLetters = /^[А-ЯЁ]$/;
@@ -174,17 +177,39 @@ function addLetter(i, j) {
         }
     });
 
+    // При потере фокуса
     input.addEventListener('blur', (e) => {
         const value = e.target.value.toUpperCase();
-        grid[i][j] = value || '';
+        
+        if (value) {
+            grid[i][j] = value;
+        } else {
+            // Если буква не введена - сбрасываем состояние
+            grid[i][j] = '';
+            currentMoveLetter = null;
+            isMoveInProgress = false;
+            document.getElementById('reset-button').style.display = 'none';
+        }
+        
         activeInput = null;
         renderBoard();
     });
 
+    // При нажатии Enter
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const value = e.target.value.toUpperCase();
-            grid[i][j] = value || '';
+            
+            if (value) {
+                grid[i][j] = value;
+            } else {
+                // Если буква не введена - сбрасываем состояние
+                grid[i][j] = '';
+                currentMoveLetter = null;
+                isMoveInProgress = false;
+                document.getElementById('reset-button').style.display = 'none';
+            }
+            
             activeInput = null;
             renderBoard();
         }
@@ -195,8 +220,30 @@ function addLetter(i, j) {
     input.focus();
     activeInput = input;
 
-    document.getElementById('reset-button').style.display = 'block';
     document.getElementById('selection-controls').style.display = 'none';
+}
+
+// Новая функция для завершения активного ввода
+function finishActiveInput() {
+    if (!activeInput) return;
+    
+    const cellElement = activeInput.parentElement;
+    const i = parseInt(cellElement.dataset.row);
+    const j = parseInt(cellElement.dataset.col);
+    const value = activeInput.value.toUpperCase();
+    
+    if (value) {
+        grid[i][j] = value;
+    } else {
+        // Если буква не введена - сбрасываем состояние
+        grid[i][j] = '';
+        currentMoveLetter = null;
+        isMoveInProgress = false;
+        document.getElementById('reset-button').style.display = 'none';
+    }
+    
+    activeInput = null;
+    renderBoard();
 }
 
 function isAdjacentToFilled(row, col) {
@@ -304,11 +351,21 @@ function updateScoreboard() {
     }`;
 }
 
-// Инициализация
+// Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth().then(() => {
-        renderBoard();
-        startTimer();
-        updateScoreboard();
+        // Извлекаем ID игры из URL
+        const pathParts = window.location.pathname.split('/');
+        const gameId = pathParts[pathParts.length - 1];
+        
+        if (gameId) {
+            document.getElementById('game-id').textContent = gameId;
+            renderBoard();
+            startTimer();
+            updateScoreboard();
+        } else {
+            alert('Не указан ID игры');
+            window.location.href = '/';
+        }
     });
 });

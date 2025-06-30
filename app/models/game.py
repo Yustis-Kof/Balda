@@ -9,12 +9,14 @@ class Game:
     Игровая партия.
     """
 
-    def __init__(self, board:Board, players:list):
+    def __init__(self, board:Board, players:list, host:Player, name:str):
         """Игровая партия.
 
         Args:
             board (Board): Игровое поле
-            players (dict): Игроки
+            players (dict): Игроки (не включая хоста)
+            host (Player): Хост игры
+            name (str): Название комнаты
         """
 
         if not board:
@@ -22,7 +24,9 @@ class Game:
         else:
             self.board = board
         self.started = False
-        self.players = players
+        self.host = host
+        self.players = [host] + players
+        self.name = name
         self.count = [0] * len(players)
         self.current_player = 0
         self.history = []
@@ -84,8 +88,8 @@ class Game:
             player (Player): игрок"""
         if not self.started:
             if len(self.players) <= 4:
-                if player in self.players:
-                    self.players.add(player)
+                if player not in self.players:
+                    self.players.append(player)
             else:
                 raise LobbyIsFull("Комната заполнена")
         else:

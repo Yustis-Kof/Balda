@@ -35,7 +35,6 @@ def login():
         if user:
             session['user_id'] = user['id']
             session['username'] = user['username']
-            session['user_obj'] = current_app.users[session['user_id']]
             return redirect(url_for('main.index'))
         
         return render_template('login.html', error="Неверные данные")
@@ -118,11 +117,43 @@ def get_random_word():  # Мне ооочень страшно делать од
 ## Игра
 
 @login_required
+@main_routes.route('/create_lobby', methods=['POST'])
+def create_lobby():
+    
+    data = request.json
+    name = data.get("name", "Без названия")
+    
+    host = current_app.users[session.get("user_id")]
+
+    new_game = Game(Board(), [], host, name)
+    game_id = str(randint(0, 1000000))
+    current_app.games[game_id] = new_game
+    
+    return jsonify({
+        'status': 'success',
+        'game_id': game_id
+    })
+
+@main_routes.route('/get_lobbies')
+def get_lobbies():
+    host = current_app.users[session.get("user_id")]
+    lobbies = []
+    for lobby in current_app.games:
+        lobbies.append({
+            'id': lobby,
+            'name': host.name,
+            'players': len(current_app.games[lobby].players),
+            'max_players': 4
+        })
+    return jsonify(lobbies)
+
+@login_required
 @main_routes.route('/lobby/<game_id>')
 def join_room(game_id):
-    user = session.get("user_obj")
+    user = current_app.users[session.get("user_id")]
     try:
         current_app.games[game_id].add_player(user)
+        return render_template('game.html')
     except Exception as e:
         return jsonify({'status': 'error', 'message': e}), 400
 
@@ -178,18 +209,3 @@ def get_current_user():
             'user_id': session.get('user_id')
         })
     return jsonify({'error': 'Not authenticated'}), 401
-
-@login_required
-@main_routes.route('/create_lobby', methods=['POST'])
-def create_lobby():
-    
-    data = request.json
-    user_id = session.get("user_id")
-
-
-    new_game = Game(Board(), [session["user_obj"]])
-    game_id = randint(0, 1000000)
-    current_app.games[game_id] = new_game
-    
-    
-    return redirect(f'/lobby/{game_id}')
