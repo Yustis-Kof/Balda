@@ -76,11 +76,7 @@ function renderBoard() {
         });
         board.appendChild(rowElement);
     });
-    
-    // Гарантированно скрываем кнопки после рендеринга
-    document.getElementById('reset-button').classList.remove('visible');
-    document.getElementById('selection-controls').classList.remove('visible');
-    updateSelection();
+        updateSelection();
 }
 
 function startSelection(i, j) {
@@ -315,13 +311,18 @@ function sendMoveToServer(word) {
 }
 
 function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    
     timerValue = timeForMove;
     document.getElementById('timer').textContent = `Время: ${timerValue}`;
+    
     timerInterval = setInterval(() => {
         timerValue--;
         document.getElementById('timer').textContent = `Время: ${timerValue}`;
+        
         if (timerValue <= 0) {
             clearInterval(timerInterval);
+            passTurn();
         }
     }, 1000);
 }
