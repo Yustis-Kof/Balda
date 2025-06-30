@@ -1,7 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, current_app
+from random import randint
 from functools import wraps
 from app.database import *
-from app.utils.dictionary import check_word
+from app.models.board import Board
+from app.models.game import Game
+from app.utils.dictionary import check_word as _check_word
 
 main_routes = Blueprint('main', __name__)
 
@@ -11,7 +14,7 @@ def index():
 
 
 
-## Декоратор требования авторизации (хз пока зачем, мб пригодится)
+## Декоратор требования авторизации
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -28,11 +31,11 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        # Проверка в базе данных (заглушка)
         user = authenticate_user(username, password)
         if user:
             session['user_id'] = user['id']
             session['username'] = user['username']
+            session['user_obj'] = current_app.users[session['user_id']]
             return redirect(url_for('main.index'))
         
         return render_template('login.html', error="Неверные данные")
@@ -55,6 +58,20 @@ def check_session():
         })
     return jsonify({'authenticated': False})
 
+
+@main_routes.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username and password:
+            add_user(username, password)
+            return redirect(url_for('main.index'))
+        
+        return render_template('signup.html', error="Неверные данные")
+    
+    return render_template('signup.html')
 
 ## Игровые инструменты
 
@@ -100,6 +117,15 @@ def get_random_word():  # Мне ооочень страшно делать од
 
 ## Игра
 
+@login_required
+@main_routes.route('/lobby/<game_id>')
+def join_room(game_id):
+    user = session.get("user_obj")
+    try:
+        current_app.games[game_id].add_player(user)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': e}), 400
+
 @login_required # В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
 @main_routes.route('/check', methods=['POST'])
 def check_word():
@@ -138,19 +164,32 @@ def check_word():
     if not word:
         return jsonify({'status': 'error', 'message': 'Слово не передано'}), 400
     
-    if check_word(word):
+    if _check_word(word):
         return jsonify({'status': 'success', 'message': 'Слово принято'}), 200
     else:
         return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 200
 
 
+@main_routes.route('/get_current_user', methods=['GET'])
+def get_current_user():
+    if 'user_id' in session:
+        return jsonify({
+            'username': session.get('username'),
+            'user_id': session.get('user_id')
+        })
+    return jsonify({'error': 'Not authenticated'}), 401
 
-@main_routes.route('/createlobby')
+@login_required
+@main_routes.route('/create_lobby', methods=['POST'])
 def create_lobby():
     
     data = request.json
-    user_id = data.get("user_id")
-    public = bool(data.get("public"))
-    password = data.get("password")
+    user_id = session.get("user_id")
 
-    return "<p>{user_id}, {public}, {password}</p>"
+
+    new_game = Game(Board(), [session["user_obj"]])
+    game_id = randint(0, 1000000)
+    current_app.games[game_id] = new_game
+    
+    
+    return redirect(f'/lobby/{game_id}')

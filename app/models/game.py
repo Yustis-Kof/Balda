@@ -2,13 +2,14 @@ from .board import Board
 from ..utils.dictionary import check_word
 from .exceptions import *
 from copy import deepcopy
+from .player import Player
 
 class Game:
     """
     Игровая партия.
     """
 
-    def __init__(self, board:Board, players:dict):
+    def __init__(self, board:Board, players:list):
         """Игровая партия.
 
         Args:
@@ -20,6 +21,7 @@ class Game:
             self.board = Board()
         else:
             self.board = board
+        self.started = False
         self.players = players
         self.count = [0] * len(players)
         self.current_player = 0
@@ -74,3 +76,17 @@ class Game:
         if not self.board.check_space():
             max_count = max(self.count)
             self.winners = [i for i in self.count if self.count[i]==max_count]
+
+    
+    def add_player(self, player:Player):
+        """Добавить игрока
+        Args:
+            player (Player): игрок"""
+        if not self.started:
+            if len(self.players) <= 4:
+                if player in self.players:
+                    self.players.add(player)
+            else:
+                raise LobbyIsFull("Комната заполнена")
+        else:
+            raise GameStarted("Игра уже начата")

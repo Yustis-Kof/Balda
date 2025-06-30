@@ -30,12 +30,31 @@ def get_random_word(dictionary="`dictionary`", length=5):
     finally:
         connection.close()
 
+def add_user(username, password):
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "INSERT INTO `users` VALUES (NULL, %s, %s)"
+            cursor.execute(sql, (username, password))
+    finally:
+        connection.close()
+
 def get_user(id):
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
             sql = "SELECT * FROM `users` WHERE id=%s"
             cursor.execute(sql, (id))
-            return cursor.fetchone()['word']
+            return cursor.fetchone()
+    finally:
+        connection.close()
+
+def get_all_users():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            sql = "SELECT id, username FROM `users`"
+            cursor.execute(sql)
+            return cursor.fetchall()
     finally:
         connection.close()

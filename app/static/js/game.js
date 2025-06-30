@@ -136,7 +136,7 @@ function endSelection() {
     isSelecting = false;
 
     if (selectedCells.length > 1) {
-        document.getElementById('controls').style.display = 'block';
+        document.getElementById('selection-controls').style.display = 'block';
     } else {
         selectedCells = [];
         updateSelection();
@@ -170,7 +170,7 @@ let activeInput = null; // Глобальная переменная для от
  * @param {number} j 
  */
 function addLetter(i, j) {
-    if (grid[i][j] !== '' || isMoveInProgress) return;
+    if (grid[i][j] !== '' || currentMoveLetter != null) return;
 
     // Проверка граничащих клеток
     if (!isAdjacentToFilled(i, j)) {
@@ -230,12 +230,20 @@ function addLetter(i, j) {
     // При потере фокуса сохраняем букву в клетке
     input.addEventListener('blur', (e) => {
         const value = e.target.value.toUpperCase();
+        
         if (value) {
-            grid[i][j] = value; // Обновляем значение в сетке
+            grid[i][j] = value;
         } else {
             grid[i][j] = "";
+            // Сбрасываем состояние хода, если буква не введена
+            if (currentMoveLetter && currentMoveLetter.row === i && currentMoveLetter.col === j) {
+                currentMoveLetter = null;
+                isMoveInProgress = false;
+                //document.getElementById('reset-button').style.display = 'none';
+            }
         }
-        activeInput = null; // Сбрасываем активное поле ввода
+        
+        activeInput = null;
         renderBoard();
     });
 
@@ -244,11 +252,17 @@ function addLetter(i, j) {
         if (e.key === 'Enter') {
             const value = e.target.value.toUpperCase();
             if (value) {
-                grid[i][j] = value; // Обновляем значение в сетке
+                grid[i][j] = value;
             } else {
                 grid[i][j] = "";
+                // Сбрасываем состояние хода, если буква не введена
+                if (currentMoveLetter && currentMoveLetter.row === i && currentMoveLetter.col === j) {
+                    currentMoveLetter = null;
+                    isMoveInProgress = false;
+                    //document.getElementById('reset-button').style.display = 'none';
+                }
             }
-            activeInput = null; // Сбрасываем активное поле ввода
+            activeInput = null;
             renderBoard();
         }
     });
@@ -259,7 +273,7 @@ function addLetter(i, j) {
     activeInput = input; // Устанавливаем активное поле ввода
 
     document.getElementById('reset-button').style.display = 'block';
-    document.getElementById('controls').style.display = 'none'; // Скрываем кнопки выбора
+    document.getElementById('selection-controls').style.display = 'none'; // Скрываем кнопки выбора
 }
 
 /**
@@ -299,7 +313,7 @@ function resetLetter() {
 function cancelSelection() {
     selectedCells = [];
     updateSelection();
-    document.getElementById('controls').style.display = 'none';
+    document.getElementById('selection-controls').style.display = 'none';
 }
 
 /**
@@ -308,7 +322,7 @@ function cancelSelection() {
 function submitWord() {
     const word = selectedCells.map(cell => grid[cell.row][cell.col]).join('');
     sendMoveToServer(word);
-    document.getElementById('controls').style.display = 'none';
+    document.getElementById('selection-controls').style.display = 'none';
 }
 
 
@@ -317,6 +331,7 @@ function submitWord() {
  * @param {string} word 
  */
 function sendMoveToServer(word) {
+    console.log(word)
     fetch('http://127.0.0.1:5000/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -344,8 +359,8 @@ function startTimer() {
         document.getElementById('timer').textContent = `Время: ${timerValue}`;
         if (timerValue <= 0) {
             clearInterval(timerInterval);
-            alert("Время вышло!");
-            passTurn();
+            //alert("Время вышло!");
+            //passTurn();
         }
     }, 1000);
 }

@@ -21,3 +21,9 @@ class WordDoesNotContainNewLetter(Exception):
 
 class NoWordGiven(Exception):
     pass
+
+class GameStarted(Exception):
+    pass
+
+class LobbyIsFull(Exception):
+    pass
