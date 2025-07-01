@@ -28,8 +28,9 @@ class Game:
         self.players = [host] + players
         self.name = name
         self.count = [0] * len(self.players)
-        self.current_player = 0
+        self.current_player_num = 0
         self.history = []
+        self.word_history = [self.board.start_word]
         self.winners = None
 
     def move(self, letter_coords:tuple, word_coords:list=None, word:str=None):
@@ -55,24 +56,27 @@ class Game:
 
         if check_word(word):
             self.history.append(deepcopy(self.board))
+            self.word_history.append(word)
             
-            self.count[self.current_player] += len(word)
-            self.current_player = (self.current_player + 1) % len(self.players)
+            self.count[self.current_player_num] += len(word)
+            self.current_player_num = (self.current_player_num + 1) % len(self.players)
         
             self.board = next_board
 
             self.check_end()
+
+            return word
         else:
             raise NoSuchWord(f"Can't find word {word} in dictionary")
 
     def skip_move(self):
         self.history.append(deepcopy(self.board))
-        self.current_player = (self.current_player + 1) % len(self.players)
+        self.current_player_num = (self.current_player_num + 1) % len(self.players)
 
         self.check_end()
 
     def whose_move(self):
-        return self.players[self.current_player]
+        return self.players[self.current_player_num]
             
     def start(self):
         self.started = True

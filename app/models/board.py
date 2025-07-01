@@ -21,6 +21,7 @@ class Board:
         self.dictionary = dictionary
         self.width = width
         self.height = height
+        self.start_word = start_word
         self.board = [["" for j in range(width)] for i in range(height)]
         
         centery = height//2

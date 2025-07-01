@@ -67,3 +67,6 @@ def load_dictionary():
 
 def check_word(word):
     return word_trie.search(word)
+
+def check_prefix(prefix):
+    return word_trie.search_prefix(prefix)
