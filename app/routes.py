@@ -13,8 +13,6 @@ main_routes = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-
-
 ## Декоратор требования авторизации
 def login_required(f):
     @wraps(f)
@@ -23,6 +21,22 @@ def login_required(f):
             return redirect(url_for('main.login'))
         return f(*args, **kwargs)
     return decorated_function
+
+## Декоратор участия в лобби
+def in_lobby(f):
+    @wraps(f)
+    def decorated_function(game_id, *args, **kwargs):
+        try:
+            user = current_app.users[session["user_id"]]
+        except:
+            return redirect(url_for('main.login'))
+        try:
+            game = current_app.games[game_id]
+        except:
+            return jsonify({'error': 'Game not found'}), 404
+        if user not in game.players:
+            return jsonify({'error': 'You are not member of this room'}), 403
+
 
 ## Эндпоинты логина
 
@@ -199,7 +213,19 @@ def wait_for_start(game_id):
     return jsonify({'status': 'started'})
         
 
+@in_lobby
+@main_routes.route('/lobby/<game_id>/move')
+def move(game_id):
+    user = current_app.users[session["user_id"]]
+    game:Game = current_app.games[game_id]
 
+    if user != game.whose_move():
+        return jsonify({'status': 'error', 'message': 'Не ваш ход'}), 400
+    
+
+
+
+## Ход игры
 
 @login_required # В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
 @main_routes.route('/check', methods=['POST'])

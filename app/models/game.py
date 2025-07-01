@@ -27,7 +27,7 @@ class Game:
         self.host = host
         self.players = [host] + players
         self.name = name
-        self.count = [0] * len(players)
+        self.count = [0] * len(self.players)
         self.current_player = 0
         self.history = []
         self.winners = None
@@ -70,6 +70,9 @@ class Game:
         self.current_player = (self.current_player + 1) % len(self.players)
 
         self.check_end()
+
+    def whose_move(self):
+        return self.players[self.current_player]
             
     def start(self):
         self.started = True

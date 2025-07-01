@@ -117,7 +117,7 @@ class Board:
                 coords (_type_): Список найденных координат первый n+1 букв слова
             """
 
-            global results
+            global results, found
 
             n = len(coords)
             if n == len(word):
