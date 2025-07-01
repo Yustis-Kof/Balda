@@ -35,19 +35,23 @@ def parse_dictionary(text):
         fields = lemma_line.split(' | ')
         num_fields = len(fields)
         
+        if lemma_line.startswith('атлас'):
+            pass
+
         # Пропускаем некорректные записи
-        if num_fields not in (4, 7):
+        if num_fields not in (4, 6):
             continue
             
         # Извлекаем поля в зависимости от формата
-        if num_fields == 7:
-            word, morph, pron, freq_str, prop, sem, code = fields
+        if num_fields == 6:
+            word, morph, pron, prop, sem, code = fields
         else:  # 4 поля
             word, morph, pron, code = fields
             freq_str, prop = '0', ''
-        
+            sem = ''
+        freq_str = "0"
         # Проверяем, что это нарицательное существительное
-        if 'сущ' not in morph.split() or prop.strip():
+        if 'сущ' not in morph.split() or sem:
             continue
             
         # Восстанавливаем букву "ё"
