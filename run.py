@@ -10,4 +10,5 @@ if __name__ == '__main__':
         sql = "INSERT INTO `dictionary` VALUES (NULL, %s)"
         for noun in nouns.split('\n'):
             cursor.execute(sql, (noun))
+            print(cursor.fetchall())
         connection.commit()
