@@ -71,7 +71,8 @@ class Game:
 
         self.check_end()
             
-
+    def start(self):
+        self.started = True
 
     
     def check_end(self):

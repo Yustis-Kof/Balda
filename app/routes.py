@@ -1,3 +1,4 @@
+import time
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, current_app
 from random import randint
 from functools import wraps
@@ -136,13 +137,13 @@ def create_lobby():
 
 @main_routes.route('/get_lobbies')
 def get_lobbies():
-    host = current_app.users[session.get("user_id")]
     lobbies = []
     for lobby in current_app.games:
         lobbies.append({
             'id': lobby,
-            'name': host.name,
-            'players': len(current_app.games[lobby].players),
+            'name': current_app.games[lobby].name,
+            'host': current_app.games[lobby].host.name,
+            'players': [{'username': p.name} for p in current_app.games[lobby].players],
             'max_players': 4
         })
     return jsonify(lobbies)
@@ -151,11 +152,54 @@ def get_lobbies():
 @main_routes.route('/lobby/<game_id>')
 def join_room(game_id):
     user = current_app.users[session.get("user_id")]
+    game = current_app.games[game_id]
     try:
-        current_app.games[game_id].add_player(user)
-        return render_template('game.html')
+        if not game.started:
+            current_app.games[game_id].add_player(user)
+            players = [{"id": p.id, "name": p.name} for p in game.players]
+            return jsonify({
+                "id": game_id,
+                "name": game.name,
+                "players": players
+            })
+        else:
+            return render_template('game.html')
     except Exception as e:
         return jsonify({'status': 'error', 'message': e}), 400
+
+
+@login_required
+@main_routes.route('/lobby/<game_id>/start', methods=['POST'])
+def start_game(game_id):
+    try:
+        game = current_app.games[game_id]
+    except:
+        return jsonify({'error': 'Game not found'}), 404
+    
+    if session['user_id'] != game.host.id:
+        return jsonify({'error': 'Only host can start the game'}), 403
+        
+    game.start()
+    return jsonify({'status': 'success'})
+
+@login_required
+@main_routes.route('/lobby/<game_id>/wait_start')
+def wait_for_start(game_id):
+    try:
+        game = current_app.games[game_id]
+    except:
+        return jsonify({'error': 'Game not found'}), 404
+    
+    start_time = time.time()
+    while not game.started:
+        if time.time() - start_time > 25:
+            return jsonify({'status': 'timeout'}), 408
+        time.sleep(0.1)  # Плохо: грузит CPU
+    
+    return jsonify({'status': 'started'})
+        
+
+
 
 @login_required # В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
 @main_routes.route('/check', methods=['POST'])

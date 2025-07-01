@@ -27,6 +27,15 @@
             <div class="loading">Загрузка лобби...</div>
         </div>
     </div>
+
+    <!-- Добавляем кнопку для хоста -->
+    <button id="start-button" class="btn hidden">Начать игру</button>
+
+    <!-- Добавляем блок ожидания -->
+    <div id="waiting-section" class="hidden">
+        <p>Ожидаем начала игры...</p>
+        <div class="loader"></div>
+    </div>
     
     <script src="{{ url_for('static', filename='js/lobby.js') }}"></script>
 </body>

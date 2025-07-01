@@ -260,6 +260,7 @@ function resetLetter() {
         document.getElementById('reset-button').style.display = 'none';
         renderBoard();
         updateSelection();
+        cancelSelection();
     }
 }
 
