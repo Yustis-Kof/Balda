@@ -37,6 +37,8 @@ def in_lobby(f):
             return jsonify({'error': 'Game not found'}), 404
         if user not in game.players:
             return jsonify({'error': 'You are not member of this room'}), 403
+        return f(game_id, *args, **kwargs)
+    return decorated_function
 
 
 
@@ -172,7 +174,8 @@ def get_game_data(game_id):
             "state": state,
             "move_num": game.move_num,
             "current_player_num": game.current_player_num,
-            "last_word": game.word_history[-1]
+            "last_word": game.word_history[-1],
+            "winners": game.winners
         }
     
     return game_data
@@ -307,8 +310,9 @@ def check_word():
     else:
         return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 200
 
-@in_lobby
+
 @main_routes.route('/lobby/<game_id>/move', methods=['POST'])
+@in_lobby
 def move(game_id):
     user = current_app.users[session["user_id"]]
     game:Game = current_app.games[game_id]
@@ -322,13 +326,15 @@ def move(game_id):
     
     try:
         word = game.move(tuple(letter_coords), word_coords)
+        game.board.print_board()
         return jsonify({'status': 'success', 'word': word, 'state': game.board.board}), 200
     except BaldaException as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 
-@in_lobby
+
 @main_routes.route('/lobby/<game_id>/wait_move')
+@in_lobby
 def wait_for_move(game_id):
     user = current_app.users[session["user_id"]]
     game:Game = current_app.games[game_id]

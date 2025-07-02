@@ -96,6 +96,7 @@
 }
 
 .word-list {
+    text-transform: uppercase;
     min-height: 120px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
@@ -105,11 +106,6 @@
     font-weight: bold;
     border-top: 2px solid #dee2e6;
     padding-top: 10px;
-}
-
-.player-words {
-    text-transform: uppercase;
-    text-align: left;
 }
 
 .player-scores {

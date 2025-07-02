@@ -17,6 +17,7 @@ let isMoveInProgress = false;
 let timeForMove = 60;
 let timerValue = timeForMove;
 let timerInterval = null;
+let activeGameWait = null
 
 let players = [
     { name: "Игрок 1", words: [], score: 0 },
@@ -370,14 +371,23 @@ function waitForMove() {
     fetch(`/lobby/${gameId}/wait_move`)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                activeGameWait = setTimeout(() => waitForMove(), 30000);
             }
             return response.json();
         })
         .then(data => {
-            grid = data.board;
-            players = data.players;
-            passTurn();
+            clearTimeout(activeGameWait);
+            if (data.state == "ended"){
+                if (data.winners.length > 1)
+                    alert("Победила дружба!")
+                else
+                    alert(`Игра окончена. Победитель: ${players[data.winners[0]]}`)
+            }
+            else{
+                grid = data.board;
+                players = data.players;
+                passTurn();
+            }
         })
         .catch(error => {
             console.error('Ошибка ожидания:', error);
@@ -387,7 +397,7 @@ function waitForMove() {
 
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuth().then(() => {
+    checkAuth().then(async () => {
         // Извлекаем данные из скрытого тега game-data
         gameData = JSON.parse(document.getElementById('game-data').getAttribute('data-game'));
         console.log(gameData)
@@ -399,23 +409,24 @@ document.addEventListener('DOMContentLoaded', () => {
         players = gameData.players;
         currentPlayerIndex = gameData.current_player_num
 
-        fetch('/get_current_user')
-        .then(response => response.json())
-        .then(data => {
-            for (i=0; i<players.length; i++){
-                if (data.user_id == players[i].id){
-                    myIndex = i;
-                    break;
-            }
+        await fetch('/get_current_user')
+            .then(response => response.json())
+            .then(data => {
+                for (i=0; i<players.length; i++){
+                    if (data.user_id == players[i].id){
+                        myIndex = i;
+                        break;
+                }
         }
         });
-        
-        
+
         if (gameId) {
             document.getElementById('game-id').textContent = gameId;
             renderBoard();
             startTimer();
             updateScoreboard();
+            if (gameData.state == "ended")
+                alert("Игра окончена.");
             if (currentPlayerIndex != myIndex)
                 waitForMove();
         } else {

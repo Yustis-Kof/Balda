@@ -45,7 +45,6 @@ class Game:
             word_coords (list, optional): Список координат букв слова в формате (X, Y)
             word (str, optional): Само слово
         """
-        self.board.print_board()
 
         next_board = deepcopy(self.board)
         next_board.write(letter_coords[2], letter_coords[0], letter_coords[1])
@@ -98,7 +97,7 @@ class Game:
         """
         if not self.board.check_space():
             max_count = max(self.count)
-            self.winners = [i for i in self.count if self.count[i]==max_count]
+            self.winners = [i for i in range(len(self.count)) if self.count[i]==max_count]
 
     
     def add_player(self, player:Player):
