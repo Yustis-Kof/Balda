@@ -108,6 +108,7 @@
 }
 
 .player-words {
+    text-transform: uppercase;
     text-align: left;
 }
 

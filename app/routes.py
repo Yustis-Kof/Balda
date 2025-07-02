@@ -171,6 +171,7 @@ def get_game_data(game_id):
             "board": game.board.board,
             "state": state,
             "move_num": game.move_num,
+            "current_player_num": game.current_player_num,
             "last_word": game.word_history[-1]
         }
     

@@ -23,6 +23,7 @@ let players = [
     { name: "Игрок 2", words: [], score: 0 }
 ];
 let currentPlayerIndex = 0;
+let myIndex = null;
 
 // Проверка сессии при загрузке
 async function checkAuth() {
@@ -328,7 +329,7 @@ function startTimer() {
         
         if (timerValue <= 0) {
             clearInterval(timerInterval);
-            passTurn();
+            //passTurn();
         }
     }, 1000);
 }
@@ -340,8 +341,11 @@ function passTurn() {
     selectedCells = [];
     document.getElementById('reset-button').style.display = 'none';
     timerValue = timeForMove;
+    renderBoard();
     updateScoreboard();
     startTimer();
+    if (currentPlayerIndex != myIndex)
+        waitForMove();
 }
 
 function updateScoreboard() {
@@ -362,20 +366,22 @@ function updateScoreboard() {
 }
 
 
-function waitForGameStart() {
+function waitForMove() { 
     fetch(`/lobby/${gameId}/wait_move`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'moved') {
-                alert("Ход игрока ");
-                return
-            } else {
-                activeGameWait = setTimeout(() => waitForGameStart(gameId), 30000);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            return response.json();
+        })
+        .then(data => {
+            grid = data.board;
+            players = data.players;
+            passTurn();
         })
         .catch(error => {
             console.error('Ошибка ожидания:', error);
-            activeGameWait = setTimeout(() => waitForGameStart(gameId), 5000);
+            activeGameWait = setTimeout(() => waitForMove(gameId), 5000);
         });
 }
 
@@ -389,14 +395,29 @@ document.addEventListener('DOMContentLoaded', () => {
         gameId = gameData.id;
         grid = gameData.board;
         renderBoard();
+
+        players = gameData.players;
+        currentPlayerIndex = gameData.current_player_num
+
+        fetch('/get_current_user')
+        .then(response => response.json())
+        .then(data => {
+            for (i=0; i<players.length; i++){
+                if (data.user_id == players[i].id){
+                    myIndex = i;
+                    break;
+            }
+        }
+        });
         
-        players = gameData.players
         
         if (gameId) {
             document.getElementById('game-id').textContent = gameId;
             renderBoard();
             startTimer();
             updateScoreboard();
+            if (currentPlayerIndex != myIndex)
+                waitForMove();
         } else {
             alert('Не указан ID игры');
             window.location.href = '/';
