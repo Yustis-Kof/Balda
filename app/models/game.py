@@ -27,7 +27,10 @@ class Game:
         self.host = host
         self.players = [host] + players
         self.name = name
-        self.count = [0] * len(self.players)  # Счёт
+
+        self.player_words = []
+        self.count = []  # Эти два заполняются в момент начала игры
+
         self.current_player_num = 0  # Номер текущего игрока
         self.move_num = 0  # Текущий ход
         self.history = []
@@ -60,6 +63,7 @@ class Game:
         if check_word(word):
             self.history.append(deepcopy(self.board))
             self.word_history.append(word)
+            self.player_words[self.current_player_num] += [word]
             
             self.move_num += 1
             self.count[self.current_player_num] += len(word)
@@ -83,6 +87,8 @@ class Game:
         return self.players[self.current_player_num]
             
     def start(self):
+        self.player_words = [[] for i in range(len(self.players))]
+        self.count = [0] * len(self.players)
         self.move_num = 1
         self.started = True
 

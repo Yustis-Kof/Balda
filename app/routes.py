@@ -4,6 +4,7 @@ from random import randint
 from functools import wraps
 from app.database import *
 from app.models.board import Board
+from app.models.exceptions import BaldaException
 from app.models.game import Game
 from app.utils.dictionary import check_word as _check_word
 
@@ -36,6 +37,7 @@ def in_lobby(f):
             return jsonify({'error': 'Game not found'}), 404
         if user not in game.players:
             return jsonify({'error': 'You are not member of this room'}), 403
+
 
 
 ## Эндпоинты логина
@@ -145,6 +147,36 @@ def get_random_word():  # Мне ооочень страшно делать од
 
 ## Игра
 
+def get_game_data(game_id):
+    game = current_app.games[game_id]
+    
+    players = [{"id": p.id, "name": p.name} for p in game.players]
+
+    state = "waiting"
+    if game.started:
+        state = "ingame"
+        players = []
+        for p in game.players:
+            p_order = game.players.index(p)
+            players += [{"id": p.id, "name": p.name, "words": game.player_words[p_order], "score": game.count[p_order]}]
+    if game.winners:
+        state = "ended"
+
+    
+
+    game_data = {
+            "id": game_id,
+            "name": game.name,
+            "players": players,
+            "board": game.board.board,
+            "state": state,
+            "move_num": game.move_num,
+            "last_word": game.word_history[-1]
+        }
+    
+    return game_data
+
+
 @login_required
 @main_routes.route('/create_lobby', methods=['POST'])
 def create_lobby():
@@ -185,21 +217,11 @@ def join_room(game_id):
     user = current_app.users[session.get("user_id")]
     try:
         game = current_app.games[game_id]
-        
-        players = [{"id": p.id, "name": p.name} for p in game.players]
-        game_data = {
-                "id": game_id,
-                "name": game.name,
-                "players": players,
-                "board": game.board.board
-            }
-        if not game.started:
+        game_data = get_game_data(game_id)
+
+        if game_data["state"] == "waiting" or user not in game.players:
             current_app.games[game_id].add_player(user)
-            return jsonify({
-                "id": game_id,
-                "name": game.name,
-                "players": players
-            })
+            return jsonify(game_data)
         else:
             return render_template('game.html', game_data=game_data)
     except KeyError as e:
@@ -300,7 +322,7 @@ def move(game_id):
     try:
         word = game.move(tuple(letter_coords), word_coords)
         return jsonify({'status': 'success', 'word': word, 'state': game.board.board}), 200
-    except Exception as e:
+    except BaldaException as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 
@@ -317,5 +339,6 @@ def wait_for_move(game_id):
         if time.time() - start_time > 25:
             return jsonify({'status': 'timeout'}), 408
         time.sleep(0.1)
-    
-    return jsonify({'status': 'moved', 'word': game.word_history[-1], 'state': game.board.board})
+
+    game_data = get_game_data(game_id)    
+    return jsonify(game_data)

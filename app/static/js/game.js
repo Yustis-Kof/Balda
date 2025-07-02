@@ -18,7 +18,7 @@ let timeForMove = 60;
 let timerValue = timeForMove;
 let timerInterval = null;
 
-const players = [
+let players = [
     { name: "Игрок 1", words: [], score: 0 },
     { name: "Игрок 2", words: [], score: 0 }
 ];
@@ -345,9 +345,12 @@ function passTurn() {
 }
 
 function updateScoreboard() {
+    
     players.forEach((player, index) => {
+        document.getElementById(`player${index+1}-header`).innerHTML = player.name
         const column = document.getElementById(`player${index+1}-column`);
         if (column) {
+            
             column.querySelector('.word-list').innerHTML = player.words.join('<br>') || '—';
             column.querySelector('.score').textContent = player.score;
         }
@@ -387,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grid = gameData.board;
         renderBoard();
         
+        players = gameData.players
         
         if (gameId) {
             document.getElementById('game-id').textContent = gameId;

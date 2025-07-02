@@ -1,29 +1,32 @@
-class InvalidLetter(Exception):
+class BaldaException(Exception):
     pass
 
-class InvalidCoordinates(Exception):
+class InvalidLetter(BaldaException):
     pass
 
-class LetterOverride(Exception):
+class InvalidCoordinates(BaldaException):
     pass
 
-class IsolatedLetter(Exception):
+class LetterOverride(BaldaException):
     pass
 
-class EmptyCell(Exception):
+class IsolatedLetter(BaldaException):
     pass
 
-class NoSuchWord(Exception):
+class EmptyCell(BaldaException):
     pass
 
-class WordDoesNotContainNewLetter(Exception):
+class NoSuchWord(BaldaException):
     pass
 
-class NoWordGiven(Exception):
+class WordDoesNotContainNewLetter(BaldaException):
     pass
 
-class GameStarted(Exception):
+class NoWordGiven(BaldaException):
     pass
 
-class LobbyIsFull(Exception):
+class GameStarted(BaldaException):
+    pass
+
+class LobbyIsFull(BaldaException):
     pass
