@@ -55,8 +55,8 @@ class Board:
             raise InvalidLetter(f"{letter} is not a valid letter")
         if x < 0 or x > self.width or y < 0 or y > self.height:
             raise InvalidCoordinates(f"({x},{y}) are not valid coordinates for {self.width}x{self.height} board")
-        if self.board[y][x] != "":
-            raise LetterOverride("Can't write in a cell that alredy contains a letter")
+        if self.board[y][x]:
+            raise LetterOverride(f"Can't write in a cell that alredy contains a letter ({letter} -> ({x}, {y}, {self.board[y][x]}))")
         else:
             isolated = True
             for i, j in [

@@ -87,7 +87,21 @@ def signup():
     
     return render_template('signup.html')
 
+
+
+@main_routes.route('/get_current_user', methods=['GET'])
+def get_current_user():
+    if 'user_id' in session:
+        return jsonify({
+            'username': session.get('username'),
+            'user_id': session.get('user_id')
+        })
+    return jsonify({'error': 'Not authenticated'}), 401
+
+
 ## Игровые инструменты
+
+
 
 @main_routes.route('/get_random_word', methods=['POST'])
 def get_random_word():  # Мне ооочень страшно делать одинаковые имена у методов, но пока конфликтов нет
@@ -140,7 +154,10 @@ def create_lobby():
     
     host = current_app.users[session.get("user_id")]
 
-    new_game = Game(Board(), [], host, name)
+    if len(name) == 5:
+        new_game = Game(Board(start_word=name.lower()), [], host, name)
+    else:
+        new_game = Game(Board(), [], host, name)
     game_id = str(randint(0, 1000000))
     current_app.games[game_id] = new_game
     
@@ -166,20 +183,29 @@ def get_lobbies():
 @main_routes.route('/lobby/<game_id>')
 def join_room(game_id):
     user = current_app.users[session.get("user_id")]
-    game = current_app.games[game_id]
     try:
+        game = current_app.games[game_id]
+        
+        players = [{"id": p.id, "name": p.name} for p in game.players]
+        game_data = {
+                "id": game_id,
+                "name": game.name,
+                "players": players,
+                "board": game.board.board
+            }
         if not game.started:
             current_app.games[game_id].add_player(user)
-            players = [{"id": p.id, "name": p.name} for p in game.players]
             return jsonify({
                 "id": game_id,
                 "name": game.name,
                 "players": players
             })
         else:
-            return render_template('game.html')
+            return render_template('game.html', game_data=game_data)
+    except KeyError as e:
+        return jsonify({'status': 'error', 'message': 'There is no such lobby'}), 404
     except Exception as e:
-        return jsonify({'status': 'error', 'message': e}), 400
+        return jsonify({'status': 'error', 'message': str(e)}), 400
 
 
 @login_required
@@ -212,18 +238,6 @@ def wait_for_start(game_id):
     
     return jsonify({'status': 'started'})
         
-
-@in_lobby
-@main_routes.route('/lobby/<game_id>/move')
-def move(game_id):
-    user = current_app.users[session["user_id"]]
-    game:Game = current_app.games[game_id]
-
-    if user != game.whose_move():
-        return jsonify({'status': 'error', 'message': 'Не ваш ход'}), 400
-    
-
-
 
 ## Ход игры
 
@@ -270,12 +284,38 @@ def check_word():
     else:
         return jsonify({'status': 'error', 'message': 'Слова нет в словаре'}), 200
 
+@in_lobby
+@main_routes.route('/lobby/<game_id>/move', methods=['POST'])
+def move(game_id):
+    user = current_app.users[session["user_id"]]
+    game:Game = current_app.games[game_id]
 
-@main_routes.route('/get_current_user', methods=['GET'])
-def get_current_user():
-    if 'user_id' in session:
-        return jsonify({
-            'username': session.get('username'),
-            'user_id': session.get('user_id')
-        })
-    return jsonify({'error': 'Not authenticated'}), 401
+    data = request.json
+    letter_coords = data.get('letter_coords')
+    word_coords = data.get('word_coords')
+
+    if user != game.whose_move():
+        return jsonify({'status': 'error', 'message': 'Не ваш ход'}), 400
+    
+    try:
+        word = game.move(tuple(letter_coords), word_coords)
+        return jsonify({'status': 'success', 'word': word, 'state': game.board.board}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 400
+
+
+@in_lobby
+@main_routes.route('/lobby/<game_id>/wait_move')
+def wait_for_move(game_id):
+    user = current_app.users[session["user_id"]]
+    game:Game = current_app.games[game_id]
+
+    curmove = game.move_num
+    
+    start_time = time.time()
+    while game.move_num == curmove:
+        if time.time() - start_time > 25:
+            return jsonify({'status': 'timeout'}), 408
+        time.sleep(0.1)
+    
+    return jsonify({'status': 'moved', 'word': game.word_history[-1], 'state': game.board.board})

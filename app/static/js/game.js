@@ -1,7 +1,7 @@
 const board = document.getElementById('board');
 const wordline = document.getElementById('word')
 // Пример игрового поля
-const grid = [
+let grid = [
     ['', '', '', '', ''],
     ['', '', '', '', ''],
     ['Б', 'А', 'Л', 'Д', 'А'],
@@ -287,21 +287,26 @@ function submitWord() {
         return;
     }
 
-    const word = selectedCells.map(cell => grid[cell.row][cell.col]).join('');
-    sendMoveToServer(word);
+    const letter = [currentMoveLetter.col, currentMoveLetter.row, grid[currentMoveLetter.row][currentMoveLetter.col].toLowerCase()]
+    const word = selectedCells.map(cell => [cell.col, cell.row]);
+    sendMoveToServer(letter, word);
     document.getElementById('selection-controls').style.display = 'none';
 }
 
-function sendMoveToServer(word) {
-    fetch('/check', {
+function sendMoveToServer(letter, word) {
+    /* Формат: ((x, y, буква), [(x, y),...]) */
+    fetch(`/lobby/${gameId}/move`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word: word })
+        body: JSON.stringify({
+            letter_coords: letter,
+            word_coords: word
+            })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            players[currentPlayerIndex].words.push(word);
+            players[currentPlayerIndex].words.push(data.word.toUpperCase());
             players[currentPlayerIndex].score += word.length;
             passTurn();
         } else {
@@ -353,12 +358,35 @@ function updateScoreboard() {
     }`;
 }
 
+
+function waitForGameStart() {
+    fetch(`/lobby/${gameId}/wait_move`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'moved') {
+                alert("Ход игрока ");
+                return
+            } else {
+                activeGameWait = setTimeout(() => waitForGameStart(gameId), 30000);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка ожидания:', error);
+            activeGameWait = setTimeout(() => waitForGameStart(gameId), 5000);
+        });
+}
+
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth().then(() => {
-        // Извлекаем ID игры из URL
-        const pathParts = window.location.pathname.split('/');
-        const gameId = pathParts[pathParts.length - 1];
+        // Извлекаем данные из скрытого тега game-data
+        gameData = JSON.parse(document.getElementById('game-data').getAttribute('data-game'));
+        console.log(gameData)
+
+        gameId = gameData.id;
+        grid = gameData.board;
+        renderBoard();
+        
         
         if (gameId) {
             document.getElementById('game-id').textContent = gameId;

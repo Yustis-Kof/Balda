@@ -99,9 +99,9 @@ async function joinLobby(gameId) {
     
     const gameData = await gameResponse.json();
     
-    // 3. Проверяем, что игрок в лобби
+    /*/ 3. Проверяем, что игрок в лобби
     const playerInLobby = gameData.players.some(p => p.id === userData.user_id);
-    if (!playerInLobby) throw new Error('Player not in lobby');
+    if (!playerInLobby) throw new Error('Player not in lobby');*/ // Пока что только мешает
     
     // 4. Проверяем, является ли хостом
     const isHost = gameData.players[0].id === userData.user_id;
@@ -161,8 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth().then(() => {
         getLobbies();
         
-        // Обновление списка каждые 10 секунд
-        setInterval(getLobbies, 10000);
+        // Обновление списка каждые 1 секунд
+        setInterval(getLobbies, 1000);
     });
 });
 

@@ -27,8 +27,9 @@ class Game:
         self.host = host
         self.players = [host] + players
         self.name = name
-        self.count = [0] * len(self.players)
-        self.current_player_num = 0
+        self.count = [0] * len(self.players)  # Счёт
+        self.current_player_num = 0  # Номер текущего игрока
+        self.move_num = 0  # Текущий ход
         self.history = []
         self.word_history = [self.board.start_word]
         self.winners = None
@@ -41,14 +42,16 @@ class Game:
             word_coords (list, optional): Список координат букв слова в формате (X, Y)
             word (str, optional): Само слово
         """
+        self.board.print_board()
+
         next_board = deepcopy(self.board)
         next_board.write(letter_coords[2], letter_coords[0], letter_coords[1])
 
         if not word_coords and not word:
             raise NoWordGiven("No word coords list nor word given")
         if word_coords:
-            if (letter_coords[0], letter_coords[1]) not in word_coords:
-                raise WordDoesNotContainNewLetter("Word doesn't contain new letter")
+            if (letter_coords[0], letter_coords[1]) not in word_coords and [letter_coords[0], letter_coords[1]] not in word_coords: # Не изящно, но пока так
+                raise WordDoesNotContainNewLetter(f"Word doesn't contain new letter ({letter_coords} in {word_coords})")
             word = next_board.get_word(word_coords)
         elif word:
             next_board.find_word(word, obligatory_coords=(letter_coords[0], letter_coords[1]))
@@ -58,6 +61,7 @@ class Game:
             self.history.append(deepcopy(self.board))
             self.word_history.append(word)
             
+            self.move_num += 1
             self.count[self.current_player_num] += len(word)
             self.current_player_num = (self.current_player_num + 1) % len(self.players)
         
@@ -79,6 +83,7 @@ class Game:
         return self.players[self.current_player_num]
             
     def start(self):
+        self.move_num = 1
         self.started = True
 
     

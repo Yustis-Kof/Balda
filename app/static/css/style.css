@@ -123,6 +123,7 @@
 }
 
 #board {
+    text-transform: uppercase; /* Всё будет капиталистичным */
     table-layout: fixed;
     width: 40vmin; /* 80% от меньшей стороны экрана */
     height: 40vmin;
@@ -164,7 +165,12 @@
     padding: 0px;
 }
 
+td .content {
+  aspect-ratio: 1 / 1 ;
+}
+
 #word {
+    text-transform: uppercase;
     font-size: 26px;
     margin-top: 20px;
 }

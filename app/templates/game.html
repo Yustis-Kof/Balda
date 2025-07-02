@@ -6,6 +6,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+    <!-- Информаця об игре -->
+    <div id="game-data" 
+        data-game="{{ game_data | tojson | forceescape }}"
+        style="display:none;">
+    </div>
+
     <div class="user-panel">
         <span id="current-user">{{ session.get('username', 'Гость') }}</span>
         <button onclick="logout()">Выйти</button>
