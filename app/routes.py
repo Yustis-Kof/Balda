@@ -347,5 +347,5 @@ def wait_for_move(game_id):
             return jsonify({'status': 'timeout'}), 408
         time.sleep(0.1)
 
-    game_data = get_game_data(game_id)    
+    game_data = get_game_data(game_id)
     return jsonify(game_data)
