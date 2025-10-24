@@ -12,6 +12,13 @@ main_routes = Blueprint('main', __name__)
 
 @main_routes.route('/')
 def index():
+    """
+    Главная страница
+    ---
+    responses:
+      200:
+        description: HTML главной страницы
+    """
     return render_template('index.html')
 
 ## Декоратор требования авторизации
@@ -40,12 +47,30 @@ def in_lobby(f):
         return f(game_id, *args, **kwargs)
     return decorated_function
 
-
-
 ## Эндпоинты логина
 
 @main_routes.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Аутентификация пользователя
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: username
+        in: formData
+        type: string
+        required: true
+      - name: password
+        in: formData
+        type: string
+        required: true
+    responses:
+      200:
+        description: Форма входа или редирект при успехе
+      302:
+        description: Редирект после успешной аутентификации
+    """
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -63,12 +88,51 @@ def login():
 
 @main_routes.route('/logout')
 def logout():
+    """
+    Выход из системы
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Успешный выход
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            message:
+              type: string
+    """
     session.clear()
     return jsonify({'status': 'success', 'message': 'Разлогинен'}), 200
 
 
 @main_routes.route('/check_session')
 def check_session():
+    """
+    Проверка текущей сессии
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Статус аутентификации
+        schema:
+          oneOf:
+            - type: object
+              properties:
+                authenticated:
+                  type: boolean
+                  example: true
+                username:
+                  type: string
+            - type: object
+              properties:
+                authenticated:
+                  type: boolean
+                  example: false
+    """
     if 'user_id' in session:
         return jsonify({
             'authenticated': True,
@@ -79,6 +143,26 @@ def check_session():
 
 @main_routes.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    Регистрация нового пользователя
+    ---
+    tags:
+      - Auth
+    parameters:
+      - name: username
+        in: formData
+        type: string
+        required: true
+      - name: password
+        in: formData
+        type: string
+        required: true
+    responses:
+      200:
+        description: Форма регистрации
+      302:
+        description: Редирект после успешной регистрации
+    """
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -92,9 +176,31 @@ def signup():
     return render_template('signup.html')
 
 
-
 @main_routes.route('/get_current_user', methods=['GET'])
 def get_current_user():
+    """
+    Получение данных текущего пользователя
+    ---
+    tags:
+      - Auth
+    responses:
+      200:
+        description: Данные пользователя
+        schema:
+          type: object
+          properties:
+            username:
+              type: string
+            user_id:
+              type: integer
+      401:
+        description: Не аутентифицирован
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+    """
     if 'user_id' in session:
         return jsonify({
             'username': session.get('username'),
@@ -105,17 +211,13 @@ def get_current_user():
 
 ## Игровые инструменты
 
-
-
 @main_routes.route('/get_random_word', methods=['POST'])
 def get_random_word():  # Мне ооочень страшно делать одинаковые имена у методов, но пока конфликтов нет
     """
-    Выдаёт случайное слово указанной длины
+    Получение случайного слова
     ---
     tags:
       - Game
-    consumes:
-      - application/json
     parameters:
       - in: body
         name: body
@@ -128,7 +230,7 @@ def get_random_word():  # Мне ооочень страшно делать од
               example: 5
     responses:
       200:
-        description: Слово
+        description: Случайное слово
         schema:
           type: object
           properties:
@@ -137,9 +239,11 @@ def get_random_word():  # Мне ооочень страшно делать од
               enum: [success, error]
             word:
               type: string
+      400:
+        description: Ошибка генерации слова
     """
     data = request.json
-    length = data.get('length').lower()
+    length = data.get('length')
 
     try:
         word = get_random_word(length=length)
@@ -184,6 +288,36 @@ def get_game_data(game_id):
 @login_required
 @main_routes.route('/create_lobby', methods=['POST'])
 def create_lobby():
+    """
+    Создание игрового лобби
+    ---
+    tags:
+      - Lobby
+    security:
+      - cookieAuth: []
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Моя игра"
+    responses:
+      200:
+        description: Лобби создано
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            game_id:
+              type: string
+      401:
+        description: Требуется аутентификация
+    """
     
     data = request.json
     name = data.get("name", "Без названия")
@@ -204,6 +338,35 @@ def create_lobby():
 
 @main_routes.route('/get_lobbies')
 def get_lobbies():
+    """
+    Получение списка активных лобби
+    ---
+    tags:
+      - Lobby
+    responses:
+      200:
+        description: Список лобби
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              host:
+                type: string
+              players:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+              max_players:
+                type: integer
+    """
     lobbies = []
     for lobby in current_app.games:
         lobbies.append({
@@ -218,6 +381,60 @@ def get_lobbies():
 @login_required
 @main_routes.route('/lobby/<game_id>')
 def join_room(game_id):
+    """
+    Присоединение к игровому лобби
+    ---
+    tags:
+      - Lobby
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: game_id
+        in: path
+        type: string
+        required: true
+    responses:
+      200:
+        description: Данные лобби
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            players:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+            board:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+            state:
+              type: string
+            move_num:
+              type: integer
+            current_player_num:
+              type: integer
+            last_word:
+              type: string
+            winners:
+              type: array
+              items:
+                type: integer
+      404:
+        description: Лобби не найдено
+      400:
+        description: Ошибка присоединения
+    """
     user = current_app.users[session.get("user_id")]
     try:
         game = current_app.games[game_id]
@@ -237,6 +454,31 @@ def join_room(game_id):
 @login_required
 @main_routes.route('/lobby/<game_id>/start', methods=['POST'])
 def start_game(game_id):
+    """
+    Запуск игры в лобби
+    ---
+    tags:
+      - Game
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: game_id
+        in: path
+        type: string
+        required: true
+    responses:
+      200:
+        description: Игра начата
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+      404:
+        description: Лобби не найдено
+      403:
+        description: Только создатель может начать игру
+    """
     try:
         game = current_app.games[game_id]
     except:
@@ -251,6 +493,31 @@ def start_game(game_id):
 @login_required
 @main_routes.route('/lobby/<game_id>/wait_start')
 def wait_for_start(game_id):
+    """
+    Ожидание начала игры
+    ---
+    tags:
+      - Game
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: game_id
+        in: path
+        type: string
+        required: true
+    responses:
+      200:
+        description: Игра началась
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+      404:
+        description: Лобби не найдено
+      408:
+        description: Таймаут ожидания
+    """
     try:
         game = current_app.games[game_id]
     except:
@@ -267,16 +534,15 @@ def wait_for_start(game_id):
 
 ## Ход игры
 
-@login_required # В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
+# В последствии нужно, чтобы он проверял только слова из реальных партий, иначе читеры будут реконкструировать словарь на сервере
+@login_required
 @main_routes.route('/check', methods=['POST'])
 def check_word():
     """
-    Проверяет наличие слова в словаре
+    Проверка слова в словаре
     ---
     tags:
       - Game
-    consumes:
-      - application/json
     parameters:
       - in: body
         name: body
@@ -289,7 +555,7 @@ def check_word():
               example: "балда"
     responses:
       200:
-        description: Результат проверки слова
+        description: Результат проверки
         schema:
           type: object
           properties:
@@ -298,6 +564,8 @@ def check_word():
               enum: [success, error]
             message:
               type: string
+      400:
+        description: Не передано слово
     """
     data = request.json
     word = data.get('word').lower()
@@ -314,6 +582,66 @@ def check_word():
 @main_routes.route('/lobby/<game_id>/move', methods=['POST'])
 @in_lobby
 def move(game_id):
+    """
+    Совершение хода в игре
+    ---
+    tags:
+      - Game
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: game_id
+        in: path
+        type: string
+        required: true
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            letter_coords:
+              type: array
+              items:
+                type: integer
+              example: [1, 2, "б"]
+            word_coords:
+              type: array
+              items:
+                type: array
+                items:
+                  type: integer
+              example: [[0,2], [1,2], [2,2], [3,2], [4,2]]
+    responses:
+      200:
+        description: Ход успешно выполнен
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            word:
+              type: string
+            state:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+      400:
+        description: Ошибка хода
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+            message:
+              type: string
+      403:
+        description: Не участник лобби
+      404:
+        description: Лобби не найдено
+    """
     user = current_app.users[session["user_id"]]
     game:Game = current_app.games[game_id]
 
@@ -330,12 +658,71 @@ def move(game_id):
         return jsonify({'status': 'success', 'word': word, 'state': game.board.board}), 200
     except BaldaException as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
-
-
+    
 
 @main_routes.route('/lobby/<game_id>/wait_move')
 @in_lobby
 def wait_for_move(game_id):
+    """
+    Ожидание хода в игре
+    ---
+    tags:
+      - Game
+    security:
+      - cookieAuth: []
+    parameters:
+      - name: game_id
+        in: path
+        type: string
+        required: true
+    responses:
+      200:
+        description: Данные игры после хода
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            players:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  words:
+                    type: array
+                    items:
+                      type: string
+                  score:
+                    type: integer
+            board:
+              type: array
+              items:
+                type: array
+                items:
+                  type: string
+            state:
+              type: string
+            move_num:
+              type: integer
+            current_player_num:
+              type: integer
+            last_word:
+              type: string
+            winners:
+              type: array
+              items:
+                type: integer
+      404:
+        description: Лобби не найдено
+      408:
+        description: Таймаут ожидания
+    """
     user = current_app.users[session["user_id"]]
     game:Game = current_app.games[game_id]
 
