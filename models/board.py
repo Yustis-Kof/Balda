@@ -1,6 +1,6 @@
 from .exceptions import *
 
-alphabet_ru = "абвгдежзийклмнопрстуфхцчшщъыьэюя" # ё временно отсутствует
+alphabet_ru = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 
 class Board:
     """
