@@ -1,5 +1,5 @@
 from .board import Board
-from ..utils.dictionary import check_word
+from utils.dictionary import Dictionary
 from .exceptions import *
 from copy import deepcopy
 from .player import Player
@@ -9,7 +9,7 @@ class Game:
     Игровая партия.
     """
 
-    def __init__(self, board:Board, players:list, host:Player, name:str):
+    def __init__(self, board:Board, players:list, host:Player, name:str, dictionary:Dictionary):
         """Игровая партия.
 
         Args:
@@ -27,6 +27,7 @@ class Game:
         self.host = host
         self.players = [host] + players
         self.name = name
+        self.dictionary = dictionary
 
         self.player_words = []
         self.count = []  # Эти два заполняются в момент начала игры
@@ -59,7 +60,7 @@ class Game:
             next_board.find_word(word, obligatory_coords=(letter_coords[0], letter_coords[1]))
 
 
-        if check_word(word):
+        if self.dictionary.check_word(word):
             self.history.append(deepcopy(self.board))
             self.word_history.append(word)
             self.player_words[self.current_player_num] += [word]

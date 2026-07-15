@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice
-from app.utils import dictionary
+from utils import dictionary
 
 
 class Player:
@@ -12,6 +12,9 @@ class Player:
 
 class Bot(Player):
     """Бот."""
+    def __init__(self, id, name, dictionary=dictionary.Dictionary()):
+        super().__init__(id, name)
+        self.dictionary = dictionary
 
     def make_move(self, game):
         board = game.board
@@ -47,9 +50,9 @@ class Bot(Player):
 
             word = board.get_word(coords)
 
-            if not dictionary.check_prefix(word):
+            if not self.dictionary.check_prefix(word):
                 return
-            if dictionary.check_word(word) and word not in word_history and obligatory_coords in coords:
+            if self.dictionary.check_word(word) and word not in word_history and obligatory_coords in coords:
                 words += [coords]
 
             for i, j in [

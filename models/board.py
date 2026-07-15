@@ -1,5 +1,4 @@
 from .exceptions import *
-from ..database import get_random_word
 
 alphabet_ru = "абвгдежзийклмнопрстуфхцчшщъыьэюя" # ё временно отсутствует
 
@@ -25,7 +24,7 @@ class Board:
         self.board = [["" for j in range(width)] for i in range(height)]
         
         centery = height//2
-        centerword = start_word or get_random_word(self.dictionary, self.width)
+        centerword = start_word
         coords = [(i, centery, centerword[i]) for i in range(width)]
         self.write_word(coords)
 
@@ -34,13 +33,32 @@ class Board:
 
         Уфф, в который раз мне приходится это делать...
         """
-        print("+-"*self.width, end="+\n")
+        print('  ' + ' '.join([str(i) for i in range(self.width)]))
+        print(" " + "+-"*self.width, end="+\n")
         for i in range(self.height):
+            print(i, end="")
             for j in range(self.width):
                 print("|", end="")
                 print(self.board[i][j] if self.board[i][j] else " ", end="")
             print("|")
-            print("+-"*self.width, end="+\n")
+            print(" " + "+-"*self.width, end="+\n")
+
+    def str_board(self):
+        """Напечатать игровое поле (для отладки)
+
+        Уфф, в который раз мне приходится это делать...
+        """
+
+        str_board = '  ' + ' '.join([str(i) for i in range(self.width)]) + '\n'
+        str_board += " " + "+-"*self.width + '\n'
+        for i in range(self.height):
+            str_board += str(i)
+            for j in range(self.width):
+                str_board += "|"
+                str_board += self.board[i][j] if self.board[i][j] else " "
+            str_board += "|\n"
+            str_board += " " + "+-"*self.width + "+\n"
+        return str_board
 
     def write(self, letter:chr, x:int, y:int, ignore_exceptions=False):
         """Вписать букву в клетку
@@ -60,9 +78,9 @@ class Board:
         else:
             isolated = True
             for i, j in [
-                          (0, -1),
+                            (0, -1),
                 (-1,  0),          (+1,  0),
-                          (0, +1)
+                            (0, +1)
             ]:
                 if 0 <= x+i < self.width and 0 <= y+j < self.height and self.board[y+j][x+i] != "":
                     isolated = False
@@ -98,7 +116,7 @@ class Board:
             else:
                 word += self.board[y][x]
         return word
-    
+
     def find_word(self, word:str, obligatory_coords:tuple=None):
         """Получить координаты по слову, если оно есть на поле
 
@@ -128,9 +146,9 @@ class Board:
             else:
                 x, y = coords[n-1]
                 for i, j in [
-                              (0, -1), 
+                                (0, -1), 
                     (-1,  0),          (+1,  0),
-                              (0, +1)
+                                (0, +1)
                 ]:
                     if 0 <= x+i < self.width and 0 <= y+j < self.height and (x+i, y+j) not in coords and self.board[y+j][x+i] == word[n]:
                         find_word(coords + [(x+i, y+j)])

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Балда – Лобби</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="user-panel">
+        {% if session.get('username') %}
+            <span id="current-user">{{ session['username'] }}</span>
+            <button onclick="logout()">Выйти</button>
+        {% else %}
+            <a href="/login">Войти</a>
+        {% endif %}
+    </div>
+    
+    <div class="lobby-container">
+        <h2>Создать новое лобби</h2>
+        <div class="create-lobby">
+            <input type="text" id="lobby-name" placeholder="Название лобби" maxlength="30">
+            <button onclick="createLobby()">Создать</button>
+        </div>
+        
+        <h2>Активные лобби</h2>
+        <div class="lobby-list" id="lobby-list">
+            <div class="loading">Загрузка лобби...</div>
+        </div>
+    </div>
+
+    <!-- Добавляем кнопку для хоста -->
+    <button id="start-button" class="btn hidden">Начать игру</button>
+
+    <!-- Добавляем блок ожидания -->
+    <div id="waiting-section" class="hidden">
+        <p>Ожидаем начала игры...</p>
+        <div class="loader"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/lobby.js') }}"></script>
+</body>
+</html>

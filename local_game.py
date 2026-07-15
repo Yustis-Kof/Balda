@@ -1,18 +1,16 @@
-from app import create_app
-from app.models.game import Game
-from app.models.player import Bot, Player
+from models.game import Game
+from models.player import Bot, Player
+from utils.dictionary import Dictionary
 
 if __name__ == '__main__':
-    try:
-        app = create_app()
-    except Exception as e:
-        print(e)
-        print("Невозможно подключиться к базе данных")
-        input()
-        
-    биба = Bot(0, 'биба')
+    game_dictionary = Dictionary()
+    game_dictionary.load_dictionary(dictionary="balda.db", pos=["сущ"], min_freq=0, max_freq=1000000, min_length=1, max_length=100)
+    bot_dictionary = Dictionary()
+    bot_dictionary.load_dictionary(dictionary="balda.db", pos=["сущ"], min_freq=0, max_freq=1000000, min_length=1, max_length=100)
+
+    биба = Bot(0, 'биба', dictionary=bot_dictionary)
     боба = Player(1, 'боба')
-    game = Game(board=None, players=[биба], host=боба, name="Игра")
+    game = Game(board=None, players=[биба], host=боба, name="Игра", dictionary=game_dictionary)
     game.skip_move()
     while not game.winners:
         print(", ".join([game.players[i].name + ": " + str(game.count[i]) for i in range(len(game.players))]))
