@@ -55,11 +55,15 @@ class Dictionary:
 
     def load_dictionary(self, dictionary="dictionary", pos=["сущ"], min_freq=0, max_freq=1000000, min_length=1, max_length=100):
         """Загрузить словарь из БД"""
+        if isinstance(pos, str):
+            pos = [pos]
+
         connection = sqlite3.connect("balda.db")
         try:
             cursor = connection.cursor()
-            sql = "SELECT word FROM dictionary WHERE freq BETWEEN ? AND ? AND LENGTH(word)*2 BETWEEN ? AND ? AND pos IN ?"
-            cursor.execute(sql, (min_freq, max_freq, min_length, max_length, pos))
+            placeholders = ", ".join("?" for _ in pos)
+            sql = f"SELECT word FROM dictionary WHERE freq BETWEEN ? AND ? AND LENGTH(word)*2 BETWEEN ? AND ? AND pos IN ({placeholders})"
+            cursor.execute(sql, (min_freq, max_freq, min_length, max_length, *pos))
             result = cursor.fetchall()
 
             # Загружаем все слова в префиксное дерево
