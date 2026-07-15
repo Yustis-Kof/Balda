@@ -3,14 +3,8 @@
 Пикча для красоты. На самом деле интерфейса нет
 
 ## Требования
-- Python 13+
-- MySQL (Например, через Open Server Panel)
+- Никаких требований дорогой, запускай и играй
 
 ## Разворачивание и запуск
-1. Создать в MySQL базу в соответствии с `config.py`
-2. В ветке `dictionary` этого репозитория:
-    1. Установить requirments.txt `py -m pip install -r requirments.txt`
-    2. Запустить `run.py`
-4. В основной ветке:
-    1. Установить requirments.txt `py -m pip install -r requirments.txt`
-    2. Запустить `run.py`
+1. Возьми откуда-нибудь словарь в формате SQLite
+2. `python local_game.py`
