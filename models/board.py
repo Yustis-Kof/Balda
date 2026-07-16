@@ -164,7 +164,7 @@ class Board:
         elif found:
             raise WordDoesNotContainNewLetter("Word doesn't contain new letter")
         else:
-            raise NoSuchWord(f"Can't find the word {word} on the board")
+            raise WordNotOnBoard(f"Can't find the word {word} on the board")
 
     def check_space(self):
         """Проверить, остались ли незаполненные клетки

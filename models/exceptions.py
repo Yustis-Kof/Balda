@@ -19,6 +19,9 @@ class EmptyCell(BaldaException):
 class NoSuchWord(BaldaException):
     pass
 
+class WordNotOnBoard(BaldaException):
+    pass
+
 class WordDoesNotContainNewLetter(BaldaException):
     pass
 
