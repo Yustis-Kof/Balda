@@ -1,5 +1,5 @@
 from .board import Board
-from utils.dictionary import Dictionary
+from models.dictionary import Dictionary
 from .exceptions import *
 from copy import deepcopy
 from .player import Player

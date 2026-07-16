@@ -1,6 +1,7 @@
+from models.board import Board
 from models.game import Game
 from models.player import Bot, Player
-from utils.dictionary import Dictionary
+from models.dictionary import Dictionary
 
 if __name__ == '__main__':
     game_dictionary = Dictionary()
@@ -10,9 +11,8 @@ if __name__ == '__main__':
 
     биба = Bot(0, 'биба', dictionary=bot_dictionary)
     боба = Player(1, 'боба')
-    game = Game(board=None, players=[биба], host=боба, name="Игра", dictionary=game_dictionary)
+    game = Game(board=Board(width=5, height=5, start_word="балда"), players=[биба], host=боба, name="Игра", dictionary=game_dictionary)
     game.start()
-    game.skip_move()
     while not game.winners:
         print(", ".join([game.players[i].name + ": " + str(game.count[i]) for i in range(len(game.players))]))
         print("Ход игрока " + game.whose_move().name)

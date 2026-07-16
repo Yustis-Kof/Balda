@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice
-from utils import dictionary
+from models import dictionary
 
 
 class Player:

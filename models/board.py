@@ -6,7 +6,7 @@ class Board:
     """
     Игровое поле.
     """
-    def __init__(self, alphabet=alphabet_ru, dictionary="dictionary", width=5, height=5, start_word="балда"):
+    def __init__(self, alphabet=alphabet_ru, width=5, height=5, start_word="балда"):
         """Игровое поле.
 
         Args:
@@ -17,7 +17,6 @@ class Board:
             start_word (str, optional): Слово на средней горизонтали, с которого начинается игра. Defaults to "балда".
         """
         self.alphabet = alphabet
-        self.dictionary = dictionary
         self.width = width
         self.height = height
         self.start_word = start_word
